@@ -29,6 +29,7 @@ type ChangePass struct {
 var DBResult Details
 
 // var uri string = "mongodb://localhost:27017"
+
 var uri string = "mongodb+srv://admin1:hpcadmin55@cluster0.cgpy4.mongodb.net/users?retryWrites=true&w=majority"
 
 func CheckUserInDB(email string) (error, error) {
@@ -85,7 +86,7 @@ func ChangePassInDB(creds ChangePass) (mongo.UpdateResult, error, error) {
 
 	fmt.Println("Connected to MongoDB!")
 
-	collection := client.Database("admin").Collection("users")
+	collection := client.Database("users").Collection("users")
 
 	filter := bson.M{"username": creds.User, "password": creds.CurrPass}
 
