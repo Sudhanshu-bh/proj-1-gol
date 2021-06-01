@@ -16,17 +16,26 @@ type Email struct {
 }
 
 type Details struct {
-	User     string `bson:"user"`
+	User     string `bson:"username"`
 	Password string `bson:"password"`
 }
 
 type ChangePass struct {
-	User     string `bson:"user"`
+	User     string `bson:"username"`
 	CurrPass string `bson:"password"`
 	NewPass  string `bson:"newpass"`
 }
 
+type FetchProfile struct {
+	Name    string
+	Gender  string
+	Dob     time.Time
+	Address string
+}
+
 var DBResult Details
+
+var DBProfileResult FetchProfile
 
 // var uri string = "mongodb://localhost:27017"
 
@@ -105,4 +114,36 @@ func ChangePassInDB(creds ChangePass) (mongo.UpdateResult, error, error) {
 	fmt.Println("Connection to MongoDB closed.")
 
 	return *UpdateOneStruct, err, nil
+}
+
+func FetchProfileFromDB(email string) (error, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	if err != nil {
+		return nil, err
+	}
+
+	// Check the connection
+	err = client.Ping(ctx, readpref.Primary())
+
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("Connected to MongoDB!")
+
+	collection := client.Database("users").Collection("users")
+
+	err = collection.FindOne(context.TODO(), bson.M{"username": email}).Decode(&DBProfileResult)
+
+	err2 := client.Disconnect(ctx)
+
+	if err2 != nil {
+		return nil, err2
+	}
+	fmt.Println("Connection to MongoDB closed.")
+
+	return err, nil
 }
